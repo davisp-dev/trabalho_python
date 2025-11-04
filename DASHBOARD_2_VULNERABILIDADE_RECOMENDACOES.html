@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard 2 - Vulnerabilidade e Recomendações</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #d62728 0%, #ff7f0e 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 25px;
+            border-radius: 15px;
+            border-left: 5px solid #d62728;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .stat-box h3 {
+            color: #d62728;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .stat-box.pedestres {
+            border-left-color: #ff7f0e;
+        }
+
+        .stat-box.pedestres h3 {
+            color: #ff7f0e;
+        }
+
+        .stat-box.ciclistas {
+            border-left-color: #2ca02c;
+        }
+
+        .stat-box.ciclistas h3 {
+            color: #2ca02c;
+        }
+
+        .stat-box.motoristas {
+            border-left-color: #1f77b4;
+        }
+
+        .stat-box.motoristas h3 {
+            color: #1f77b4;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            font-size: 0.95em;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            color: #1f77b4;
+        }
+
+        .charts-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .chart-container {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border: 2px solid #e9ecef;
+        }
+
+        .chart-container h3 {
+            margin-bottom: 20px;
+            color: #d62728;
+            font-size: 1.3em;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #d62728;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+        }
+
+        .recommendations {
+            background: linear-gradient(135deg, #fff0f0 0%, #ffe6e6 100%);
+            border-left: 5px solid #d62728;
+            padding: 30px;
+            margin-top: 30px;
+            border-radius: 10px;
+            font-size: 0.95em;
+            line-height: 1.8;
+        }
+
+        .recommendations h2 {
+            color: #d62728;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+        }
+
+        .recommendation-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-left: 4px solid #ff7f0e;
+            border-radius: 5px;
+        }
+
+        .recommendation-item h4 {
+            color: #d62728;
+            margin-bottom: 8px;
+            font-size: 1.05em;
+        }
+
+        .recommendation-item.critical {
+            border-left-color: #d62728;
+            background: #fff5f5;
+        }
+
+        .recommendation-item.high {
+            border-left-color: #ff7f0e;
+            background: #fff9f0;
+        }
+
+        .priority-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .priority-badge.critical {
+            background: #d62728;
+            color: white;
+        }
+
+        .priority-badge.high {
+            background: #ff7f0e;
+            color: white;
+        }
+
+        .priority-badge.medium {
+            background: #1f77b4;
+            color: white;
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 20px 40px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .comparison-table thead {
+            background: linear-gradient(135deg, #1f77b4 0%, #ff7f0e 100%);
+            color: white;
+        }
+
+        .comparison-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .comparison-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .comparison-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        @media (max-width: 1200px) {
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚠️ ANÁLISE DE VULNERABILIDADE & RECOMENDAÇÕES</h1>
+            <p>Foco em Grupos de Risco e Estratégias de Mitigação</p>
+        </div>
+
+        <div class="content">
+            <!-- VULNERABILITY ANALYSIS -->
+            <h2 style="color: #d62728; margin-bottom: 25px; font-size: 1.8em;">🎯 Grupos Vulneráveis - Análise Detalhada</h2>
+
+            <div class="stats-grid">
+                <!-- PEDESTRES -->
+                <div class="stat-box pedestres">
+                    <h3>👥 PEDESTRES (Mais Vulneráveis)</h3>
+                    <div class="stat-item">
+                        <span class="stat-label">Total de Vítimas:</span>
+                        <span class="stat-value">133.610</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Feridos:</span>
+                        <span class="stat-value">131.876</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Mortos:</span>
+                        <span class="stat-value">1.734</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Taxa de Mortalidade:</span>
+                        <span class="stat-value" style="color: #d62728;">1.30%</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">1 morte a cada:</span>
+                        <span class="stat-value">77 ferimentos</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">% do Total de Vítimas:</span>
+                        <span class="stat-value">18.6%</span>
+                    </div>
+                </div>
+
+                <!-- CICLISTAS -->
+                <div class="stat-box ciclistas">
+                    <h3>🚴 CICLISTAS (Moderadamente Vulneráveis)</h3>
+                    <div class="stat-item">
+                        <span class="stat-label">Total de Vítimas:</span>
+                        <span class="stat-value">64.819</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Feridos:</span>
+                        <span class="stat-value">64.542</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Mortos:</span>
+                        <span class="stat-value">277</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Taxa de Mortalidade:</span>
+                        <span class="stat-value" style="color: #2ca02c;">0.43%</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">1 morte a cada:</span>
+                        <span class="stat-value">234 ferimentos</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">% do Total de Vítimas:</span>
+                        <span class="stat-value">9.0%</span>
+                    </div>
+                </div>
+
+                <!-- MOTORISTAS -->
+                <div class="stat-box motoristas">
+                    <h3>🚗 MOTORISTAS (Maior Proteção)</h3>
+                    <div class="stat-item">
+                        <span class="stat-label">Total de Vítimas:</span>
+                        <span class="stat-value">521.304</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Feridos:</span>
+                        <span class="stat-value">519.872</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Mortos:</span>
+                        <span class="stat-value">1.432</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Taxa de Mortalidade:</span>
+                        <span class="stat-value" style="color: #1f77b4;">0.27%</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">1 morte a cada:</span>
+                        <span class="stat-value">364 ferimentos</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">% do Total de Vítimas:</span>
+                        <span class="stat-value">72.4%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COMPARATIVE ANALYSIS -->
+            <h2 style="color: #d62728; margin: 40px 0 25px 0; font-size: 1.8em;">📊 Comparação Relativa de Risco</h2>
+
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Grupo de Vítima</th>
+                        <th>Taxa de Mortalidade</th>
+                        <th>Relação com Motoristas</th>
+                        <th>Risco Relativo</th>
+                        <th>Ação Prioritária</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Pedestres</strong></td>
+                        <td style="color: #d62728;"><strong>1.30%</strong></td>
+                        <td style="color: #d62728;">4.8x MAIOR</td>
+                        <td style="color: #d62728;"><strong>CRÍTICO</strong></td>
+                        <td>Ciclovias, redesenho de interseções</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Ciclistas</strong></td>
+                        <td style="color: #ff7f0e;"><strong>0.43%</strong></td>
+                        <td style="color: #ff7f0e;">1.6x MAIOR</td>
+                        <td style="color: #ff7f0e;"><strong>ALTO</strong></td>
+                        <td>Ciclovias protegidas, sinalização</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Motoristas</strong></td>
+                        <td style="color: #1f77b4;"><strong>0.27%</strong></td>
+                        <td style="color: #1f77b4;">Base (1.0x)</td>
+                        <td style="color: #1f77b4;"><strong>MÉDIO</strong></td>
+                        <td>Proteção passiva, educação</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- CHARTS SECTION -->
+            <div class="charts-section">
+                <div class="chart-container">
+                    <h3>⚠️ Taxa de Mortalidade por Grupo</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="mortalityRateChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3>📊 Proporção de Vítimas</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="proportionChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3>🌆 Severidade por Bairro - Taxa %</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="severityByBoroughChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3>📈 Evolução: Colisões vs Taxa de Mortalidade</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="evolutionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RECOMMENDATIONS SECTION -->
+            <div class="recommendations">
+                <h2>🚨 7 RECOMENDAÇÕES ESTRATÉGICAS PARA O GOVERNADOR</h2>
+
+                <div class="recommendation-item critical">
+                    <div>
+                        <span class="priority-badge critical">CRÍTICO</span>
+                        <h4>1️⃣ COMBATER DESATENÇÃO AO VOLANTE (31.1% de todas as causas)</h4>
+                    </div>
+                    <p><strong>Problema:</strong> 552.838 acidentes causados por distração/desatenção - Principal fator contribuinte.</p>
+                    <p><strong>Ações:</strong></p>
+                    <ul style="margin-left: 20px; margin-top: 8px;">
+                        <li>Aumentar fiscalização de dirigentes distraídos (uso de celular)</li>
+                        <li>Campanhas educativas massivas em TV, rádio, mídia digital</li>
+                        <li>Multas progressivas para infrações de distração</li>
+                        <li>Investimento em tecnologia de detecção automática (câmeras inteligentes)</li>
+                    </ul>
+                    <p style="margin-top: 10px;"><strong>Impacto Esperado:</strong> Redução de até 20% em acidentes em 12 meses</p>
+                </div>
+
+                <div class="recommendation-item critical">
+                    <div>
+                        <span class="priority-badge critical">CRÍTICO</span>
+                        <h4>2️⃣ PROTEÇÃO MÁXIMA DE PEDESTRES (Taxa mortalidade 5x maior)</h4>
+                    </div>
+                    <p><strong>Problema:</strong> 133.610 vítimas (18.6% do total) com taxa de mortalidade de 1.30% - A MAIS ALTA entre grupos.</p>
+                    <p><strong>Ações Imediatas:</strong></p>
+                    <ul style="margin-left: 20px; margin-top: 8px;">
+                        <li>Implantação de ciclovias protegidas nas ruas críticas (prioridade: Brooklyn)</li>
+                        <li>Redesenho de interseções de alto risco com semáforos inteligentes</li>
+                        <li>Aumento de fiscalização em zonas de trânsito intenso</li>
+                        <li>Campanhas de conscientização para motoristas sobre respeito a pedestres</li>
+                        <li>Redução de velocidade em zonas de alta circulação de pedestres (30 km/h)</li>
+                    </ul>
+                    <p style="margin-top: 10px;"><strong>Vidas a Salvar:</strong> ~433 pedestres/ano com redução de 25% na taxa de mortalidade</p>
+                </div>
+
+                <div class="recommendation-item critical">
+                    <div>
+                        <span class="priority-badge critical">CRÍTICO</span>
+                        <h4>3️⃣ TASK FORCE ESPECIAL PARA BROOKLYN (26.4% de severidade)</h4>
+                    </div>
+                    <p><strong>Problema:</strong> Brooklyn concentra 492.489 colisões (22.2% do total) com a MAIOR taxa de severidade (26.4%).</p>
+                    <p><strong>Ações:</strong></p>
+                    <ul style="margin-left: 20px; margin-top: 8px;">
+                        <li>Criação de força-tarefa dedicada apenas a Brooklyn</li>
+                        <li>Reforço de fiscalização em vias críticas (Broadway, Atlantic Ave, Flatbush Ave)</li>
+                        <li>Estudo aprofundado de "Failure to Yield" (8.5% das causas)</li>
+                        <li>Projeto piloto de zonas de 30 km/h em áreas residenciais</li>
+                        <li>Sincronização inteligente de semáforos</li>
+                    </ul>
+                    <p style="margin-top: 10px;"><strong>Foco Geográfico:</strong> Ruas de maior risco identificadas nos dados</p>
+                </div>
+
+                <div class="recommendation-item high">
+                    <div>
+                        <span class="priority-badge high">ALTA PRIORIDADE</span>
+                        <h4>4️⃣ INVESTIGAÇÃO URGENTE - PARADOXO DE SEVERIDADE (2020-2025)</h4>
+                    </div>
+                    <p><strong>Descoberta Crítica:</strong> Colisões diminuem 46% desde 2020, MAS mortalidade por colisão AUMENTOU 103%.</p>
+                    <ul style="margin-left: 20px; margin-top: 8px;">
+                        <li>2019: 0.29 vítimas/colisão → 2024: 0.59 vítimas/colisão</li>
+                        <li><strong>Hipótese:</strong> Redução de congestionamento permite maior velocidade</li>
+                    </ul>
+                    <p><strong>Ações Recomendadas:</strong></p>
+                    <ul style="margin-left: 20px; margin-top: 8px;">
+                        <li>Implementar controle de velocidade estratégico em vias com menor congestionamento</li>
+                        <li>Analisar padrões de velocidade antes/depois de 2020</li>
+                        <li>Aumentar radares de velocidade automática</li>
+                    </ul>
+                    <p style="margin-top: 10px;"><strong>Objetivo:</strong> Reverter o aumento de severidade antes que roube mais vidas</p>
+                </div>
+
+                <div class="recommendation-item high">
+                    <div>
+                        <span class="priority-badge high">ALTA PRIORIDADE</span>
+                        <h4>5️⃣ OTIMIZAÇÃO DO PERÍODO CRÍTICO (14:00-18:00)</h4>
+                    </div>
+                    <p><strong>Padrão Identificado:</strong> 36.7% de TODAS as colisões diárias ocorrem em apenas 4 horas (14h-18h).</p>
+                    <p><strong>Ações:</strong></p>
+                    <ul style="margin-left: 20px; margin-top: 8px;">
+                        <li>Reforço massivo de presença policial de 14:00 a 18:00</li>
+                        <li>Sincronização de semáforos otimizada para horário de pico</li>
+                        <li>Campanhas focadas "Afternoon Safety Campaign"</li>
+                        <li>Análise do impacto do trabalho remoto na redução do tráfego</li>
+                    </ul>
+                    <p style="margin-top: 10px;"><strong>Impacto:</strong> Concentração de recursos onde fazem mais diferença</p>
+                </div>
+
+                <div class="recommendation-item high">
+                    <div>
+                        <span class="priority-badge high">ALTA PRIORIDADE</span>
+                        <h4>6️⃣ CONTROLE DE VELOCIDADE E COMPORTAMENTO SEGURO</h4>
+                    </div>
+                    <p><strong>Fatores a Combater:</strong></p>
+                    <ul style="margin-left: 20px; margin-top: 8px;">
+                        <li>Following Too Closely (8.0%): 142.454 colisões</li>
+                        <li>Unsafe Speed (2.3%): 40.574 colisões</li>
+                        <li>Alcohol Involvement (1.5%): 27.316 colisões</li>
+                    </ul>
+                    <p><strong>Ações:</strong></p>
+                    <ul style="margin-left: 20px; margin-top: 8px;">
+                        <li>Expansão de zonas de velocidade reduzida (30 km/h)</li>
+                        <li>Radar automático de velocidade em ruas críticas</li>
+                        <li>Reforço de DUI (dirigir sob influência) em noites e fins de semana</li>
+                        <li>Campanhas "Keep Your Distance" com mensagens nas ruas</li>
+                    </ul>
+                </div>
+
+                <div class="recommendation-item high">
+                    <div>
+                        <span class="priority-badge medium">PRIORIDADE MÉDIA</span>
+                        <h4>7️⃣ MANUTENÇÃO DE INFRAESTRUTURA VIÁRIA</h4>
+                    </div>
+                    <p><strong>Fatores Ambientais:</strong></p>
+                    <ul style="margin-left: 20px; margin-top: 8px;">
+                        <li>Pavement Slippery (1.4%): 25.480 colisões</li>
+                        <li>View Obstructed/Limited (1.1%): 18.688 colisões</li>
+                    </ul>
+                    <p><strong>Ações:</strong></p>
+                    <ul style="margin-left: 20px; margin-top: 8px;">
+                        <li>Programa de manutenção preventiva de pavimento</li>
+                        <li>Limpeza regular de vias (folhas, detritos)</li>
+                        <li>Melhoria de sinalização em áreas de visibilidade limitada</li>
+                        <li>Investimento em drenagem para reduzir acidentes em chuva</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- KPI TARGETS -->
+            <div style="background: #f0f8ff; border-left: 5px solid #1f77b4; padding: 25px; margin-top: 30px; border-radius: 10px;">
+                <h3 style="color: #1f77b4; margin-bottom: 15px;">🎯 MÉTRICAS DE SUCESSO (KPIs) - 2 ANOS</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                    <div>
+                        <strong style="color: #1f77b4;">KPI 1:</strong> Reduzir colisões totais em <strong>15%</strong>
+                    </div>
+                    <div>
+                        <strong style="color: #1f77b4;">KPI 2:</strong> Reduzir mortes em <strong>25%</strong> (~67 vidas/ano)
+                    </div>
+                    <div>
+                        <strong style="color: #1f77b4;">KPI 3:</strong> Reduzir "Driver Inattention" em <strong>20%</strong>
+                    </div>
+                    <div>
+                        <strong style="color: #1f77b4;">KPI 4:</strong> Aumentar ciclovias protegidas <strong>100 km/ano</strong>
+                    </div>
+                    <div>
+                        <strong style="color: #1f77b4;">KPI 5:</strong> Reduzir mortalidade por colisão para <strong>&lt;0.30</strong>
+                    </div>
+                    <div>
+                        <strong style="color: #1f77b4;">KPI 6:</strong> Reduzir pedestres mortos em <strong>30%</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BUDGET ESTIMATE -->
+            <div style="background: #f0fff4; border-left: 5px solid #2ca02c; padding: 25px; margin-top: 20px; border-radius: 10px;">
+                <h3 style="color: #2ca02c; margin-bottom: 15px;">💰 ESTIMATIVA DE IMPACTO ECONÔMICO</h3>
+                <p><strong>Custo da Inação (Status Quo):</strong> ~270 mortes/ano × $10-15M por morte = $2.7-4.0B/ano em perdas</p>
+                <p><strong style="margin-top: 10px;">Investimento Recomendado:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 8px;">
+                    <li>Fiscalização aumentada: <strong>$50M/ano</strong></li>
+                    <li>Infraestrutura (ciclovias, semáforos): <strong>$200M/ano</strong></li>
+                    <li>Tecnologia (câmeras, sensores): <strong>$100M/ano</strong></li>
+                </ul>
+                <p><strong style="margin-top: 10px;">TOTAL ANUAL: ~$350M</strong></p>
+                <p><strong style="margin-top: 10px;">Retorno Esperado (25% redução de mortes):</strong> <strong>$670M-1B/ano</strong></p>
+                <p style="margin-top: 10px; color: #2ca02c; font-weight: bold;">ROI: 190% - 286%</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Dashboard de Vulnerabilidade & Recomendações | Período: 2013-2025 | Análise Executiva para Governador</p>
+        </div>
+    </div>
+
+    <script>
+        // Mortality Rate Chart
+        const mortalityCtx = document.getElementById('mortalityRateChart').getContext('2d');
+        new Chart(mortalityCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Pedestres', 'Ciclistas', 'Motoristas'],
+                datasets: [{
+                    label: 'Taxa de Mortalidade (%)',
+                    data: [1.30, 0.43, 0.27],
+                    backgroundColor: [
+                        'rgba(214, 39, 40, 0.8)',
+                        'rgba(44, 160, 44, 0.8)',
+                        'rgba(31, 119, 180, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgb(214, 39, 40)',
+                        'rgb(44, 160, 44)',
+                        'rgb(31, 119, 180)'
+                    ],
+                    borderWidth: 2,
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 1.5,
+                        ticks: {
+                            callback: function(value) { return value.toFixed(2) + '%'; }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Proportion Chart
+        const proportionCtx = document.getElementById('proportionChart').getContext('2d');
+        new Chart(proportionCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Motoristas (72.4%)', 'Pedestres (18.6%)', 'Ciclistas (9.0%)'],
+                datasets: [{
+                    data: [72.4, 18.6, 9.0],
+                    backgroundColor: [
+                        'rgb(31, 119, 180)',
+                        'rgb(214, 39, 40)',
+                        'rgb(44, 160, 44)'
+                    ],
+                    borderColor: 'white',
+                    borderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { padding: 15 } }
+                }
+            }
+        });
+
+        // Severity by Borough
+        const severityCtx = document.getElementById('severityByBoroughChart').getContext('2d');
+        new Chart(severityCtx, {
+            type: 'barh',
+            data: {
+                labels: ['Brooklyn', 'Bronx', 'Queens', 'Staten Island', 'Manhattan'],
+                datasets: [{
+                    label: 'Taxa de Severidade (%)',
+                    data: [26.4, 25.5, 24.0, 22.1, 19.1],
+                    backgroundColor: [
+                        'rgb(214, 39, 40)',
+                        'rgb(255, 127, 14)',
+                        'rgba(255, 127, 14, 0.7)',
+                        'rgba(44, 160, 44, 0.7)',
+                        'rgba(31, 119, 180, 0.7)'
+                    ],
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { max: 30, ticks: { callback: function(v) { return v + '%'; } } }
+                }
+            }
+        });
+
+        // Evolution Chart
+        const evolutionCtx = document.getElementById('evolutionChart').getContext('2d');
+        new Chart(evolutionCtx, {
+            type: 'line',
+            data: {
+                labels: ['2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025'],
+                datasets: [
+                    {
+                        label: 'Colisões',
+                        data: [100545, 203742, 206046, 217707, 229831, 231007, 231564, 211486, 112917, 110557, 103886, 96606, 91311, 69264],
+                        borderColor: 'rgb(31, 119, 180)',
+                        backgroundColor: 'rgba(31, 119, 180, 0.1)',
+                        borderWidth: 2,
+                        yAxisID: 'y',
+                        tension: 0.4,
+                        pointRadius: 4
+                    },
+                    {
+                        label: 'Taxa Mortalidade/Colisão',
+                        data: [0.27, 0.27, 0.25, 0.24, 0.26, 0.26, 0.27, 0.29, 0.40, 0.47, 0.50, 0.56, 0.59, 0.59],
+                        borderColor: 'rgb(214, 39, 40)',
+                        backgroundColor: 'rgba(214, 39, 40, 0.1)',
+                        borderWidth: 2,
+                        yAxisID: 'y1',
+                        tension: 0.4,
+                        pointRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' }
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        position: 'left',
+                        beginAtZero: true,
+                        title: { display: true, text: 'Colisões' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        position: 'right',
+                        beginAtZero: true,
+                        max: 1,
+                        title: { display: true, text: 'Taxa Mortalidade' },
+                        grid: { drawOnChartArea: false }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

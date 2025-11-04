@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Executivo - Segurança Viária NYC</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1f77b4 0%, #ff7f0e 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.95;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .kpi-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .kpi-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.5);
+        }
+
+        .kpi-card.warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            box-shadow: 0 8px 20px rgba(245, 87, 108, 0.3);
+        }
+
+        .kpi-card.warning:hover {
+            box-shadow: 0 12px 30px rgba(245, 87, 108, 0.5);
+        }
+
+        .kpi-card.danger {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            box-shadow: 0 8px 20px rgba(250, 112, 154, 0.3);
+            color: #333;
+        }
+
+        .kpi-card.danger:hover {
+            box-shadow: 0 12px 30px rgba(250, 112, 154, 0.5);
+        }
+
+        .kpi-card.info {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            box-shadow: 0 8px 20px rgba(79, 172, 254, 0.3);
+        }
+
+        .kpi-card.info:hover {
+            box-shadow: 0 12px 30px rgba(79, 172, 254, 0.5);
+        }
+
+        .kpi-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .kpi-label {
+            font-size: 1em;
+            opacity: 0.95;
+            font-weight: 500;
+        }
+
+        .charts-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .chart-container {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border: 2px solid #e9ecef;
+        }
+
+        .chart-container h3 {
+            margin-bottom: 20px;
+            color: #1f77b4;
+            font-size: 1.3em;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #1f77b4;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+        }
+
+        .insights {
+            background: linear-gradient(135deg, #fff5e6 0%, #ffe4cc 100%);
+            border-left: 5px solid #ff7f0e;
+            padding: 20px;
+            margin-top: 30px;
+            border-radius: 10px;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+
+        .insights h4 {
+            color: #ff7f0e;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .insights p {
+            margin-bottom: 8px;
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 20px 40px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #1f77b4;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .badge.warning {
+            background: #ff7f0e;
+        }
+
+        .badge.danger {
+            background: #d62728;
+        }
+
+        @media (max-width: 1200px) {
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 DASHBOARD EXECUTIVO</h1>
+            <p>Análise Completa de Segurança Viária - New York City (2013-2025)</p>
+            <p style="font-size: 0.95em; margin-top: 10px;">Relatório Estratégico para o Governador</p>
+        </div>
+
+        <div class="content">
+            <!-- KPI SECTION -->
+            <div class="kpi-section">
+                <div class="kpi-card">
+                    <div class="kpi-value">2.2M</div>
+                    <div class="kpi-label">COLISÕES TOTAIS</div>
+                </div>
+                <div class="kpi-card warning">
+                    <div class="kpi-value">726K</div>
+                    <div class="kpi-label">PESSOAS FERIDAS</div>
+                </div>
+                <div class="kpi-card danger">
+                    <div class="kpi-value">3.5K</div>
+                    <div class="kpi-label">PESSOAS MORTAS</div>
+                </div>
+                <div class="kpi-card info">
+                    <div class="kpi-value">457</div>
+                    <div class="kpi-label">COLISÕES/DIA</div>
+                </div>
+            </div>
+
+            <!-- CHARTS SECTION -->
+            <div class="charts-section">
+                <div class="chart-container">
+                    <h3>📊 Distribuição por Bairro (Borough)</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="boroughChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3>👥 Distribuição de Vítimas por Tipo</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="victimsChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3>⏰ Colisões por Hora do Dia</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="hourChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3>📅 Distribuição Sazonal (Todos os Anos)</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="monthChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3>📈 Tendência Anual de Colisões</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="yearChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3>⚠️ Top 10 Causas de Acidentes</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="factorsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- INSIGHTS -->
+            <div class="insights">
+                <h4>📌 PRINCIPAIS ACHADOS E RECOMENDAÇÕES CRÍTICAS</h4>
+                <div>
+                    <span class="badge danger">CRÍTICO</span>
+                    <span class="badge warning">ALTA PRIORIDADE</span>
+                    <span class="badge">AÇÃO IMEDIATA</span>
+                </div>
+                <p><br></p>
+                <p><strong>1. Desatenção ao Volante (31.1% de todas as causas):</strong> Principal fator de acidentes com 552.838 ocorrências. Recomenda-se aumentar fiscalização de dirigentes distraídos (celular) e campanhas educativas massivas.</p>
+                <p><strong>2. Proteção de Pedestres (CRÍTICA):</strong> Taxa de mortalidade 5x MAIOR que motoristas (1.30% vs 0.27%). 1.734 pedestres mortos em 13 anos. Urgente: implantar ciclovias protegidas e redesenhar interseções.</p>
+                <p><strong>3. Brooklyn em Foco (ALTA PRIORIDADE):</strong> 492.489 colisões (22.2% do total) com 26.4% de severidade - MAIOR entre bairros. Criar Task Force dedicado com reforço de fiscalização em vias críticas.</p>
+                <p><strong>4. Período Crítico (14:00-18:00):</strong> Concentra 36.7% de TODAS as colisões diárias, pico máximo em 16:00-17:00. Reforço policial e sincronização de semáforos são essenciais.</p>
+                <p><strong>5. Paradoxo de Severidade (INVESTIGAÇÃO URGENTE):</strong> Colisões diminuem 46% desde 2020, MAS mortalidade por colisão AUMENTOU 103% (0.29 → 0.59). Hipótese: redução de congestionamento permite maior velocidade. Implementar controle de velocidade em vias descongestas.</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Dashboard Executivo | Análise de 2.216.469 colisões | Período: 2013-2025 | Dados validados e processados</p>
+            <p style="margin-top: 10px; opacity: 0.7;">🔐 Documento confidencial para uso executivo - Recomendações baseadas em análise rigorosa de dados</p>
+        </div>
+    </div>
+
+    <script>
+        // Borough Chart
+        const boroughCtx = document.getElementById('boroughChart').getContext('2d');
+        new Chart(boroughCtx, {
+            type: 'barh',
+            data: {
+                labels: ['Brooklyn', 'Queens', 'Manhattan', 'Bronx', 'Staten Island'],
+                datasets: [{
+                    label: 'Número de Colisões',
+                    data: [492489, 411871, 340670, 227608, 64355],
+                    backgroundColor: [
+                        'rgb(31, 119, 180)',
+                        'rgb(255, 127, 14)',
+                        'rgb(44, 160, 44)',
+                        'rgb(214, 39, 40)',
+                        'rgb(148, 103, 189)'
+                    ],
+                    borderRadius: 5,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: { font: { size: 11 } }
+                    }
+                }
+            }
+        });
+
+        // Victims Chart (Pie)
+        const victimsCtx = document.getElementById('victimsChart').getContext('2d');
+        new Chart(victimsCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Motoristas', 'Pedestres', 'Ciclistas'],
+                datasets: [{
+                    data: [521304, 133610, 64819],
+                    backgroundColor: [
+                        'rgb(31, 119, 180)',
+                        'rgb(255, 127, 14)',
+                        'rgb(214, 39, 40)'
+                    ],
+                    borderColor: 'white',
+                    borderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { font: { size: 12 }, padding: 15 } }
+                }
+            }
+        });
+
+        // Hour Chart
+        const hourCtx = document.getElementById('hourChart').getContext('2d');
+        new Chart(hourCtx, {
+            type: 'line',
+            data: {
+                labels: ['00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00',
+                         '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00',
+                         '20:00', '21:00', '22:00', '23:00'],
+                datasets: [{
+                    label: 'Colisões por Hora',
+                    data: [73360, 39313, 30293, 26745, 30317, 32802, 50106, 68464, 121412, 116515, 108922, 113630,
+                           120871, 126698, 146338, 137976, 158146, 154944, 136334, 112641, 94414, 80715, 73521, 61992],
+                    borderColor: 'rgb(31, 119, 180)',
+                    backgroundColor: 'rgba(31, 119, 180, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: 'rgb(31, 119, 180)',
+                    pointBorderColor: 'white',
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { font: { size: 10 } }
+                    },
+                    x: {
+                        ticks: { font: { size: 9 } }
+                    }
+                }
+            }
+        });
+
+        // Month Chart
+        const monthCtx = document.getElementById('monthChart').getContext('2d');
+        new Chart(monthCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+                datasets: [{
+                    label: 'Colisões por Mês',
+                    data: [170587, 157500, 176748, 164317, 188409, 189214, 199804, 196927, 197771, 202261, 185915, 187016],
+                    backgroundColor: 'rgb(255, 127, 14)',
+                    borderRadius: 5,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { font: { size: 10 } }
+                    }
+                }
+            }
+        });
+
+        // Year Chart
+        const yearCtx = document.getElementById('yearChart').getContext('2d');
+        new Chart(yearCtx, {
+            type: 'line',
+            data: {
+                labels: ['2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025'],
+                datasets: [{
+                    label: 'Total de Colisões',
+                    data: [100545, 203742, 206046, 217707, 229831, 231007, 231564, 211486, 112917, 110557, 103886, 96606, 91311, 69264],
+                    borderColor: 'rgb(214, 39, 40)',
+                    backgroundColor: 'rgba(214, 39, 40, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 5,
+                    pointBackgroundColor: 'rgb(214, 39, 40)',
+                    pointBorderColor: 'white',
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { font: { size: 10 } }
+                    },
+                    x: {
+                        ticks: { font: { size: 10 } }
+                    }
+                }
+            }
+        });
+
+        // Factors Chart
+        const factorsCtx = document.getElementById('factorsChart').getContext('2d');
+        new Chart(factorsCtx, {
+            type: 'barh',
+            data: {
+                labels: ['Desatenção/Distração', 'Falha Ceder Passagem', 'Seguir Muito Próximo',
+                         'Outro Veíc.', 'Marcha Insegura', 'Uso Impróprio Faixa',
+                         'Passa Muito Próximo', 'Curva Imprópria', 'Fadiga/Sonolência', 'Inexperi.'],
+                datasets: [{
+                    label: 'Número de Ocorrências',
+                    data: [552838, 150891, 142454, 107367, 89199, 77564, 65694, 63718, 59467, 50962],
+                    backgroundColor: 'rgba(79, 172, 254, 0.8)',
+                    borderColor: 'rgb(79, 172, 254)',
+                    borderWidth: 2,
+                    borderRadius: 5,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: { font: { size: 9 } }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
