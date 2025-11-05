@@ -5,263 +5,218 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard 3 - Impacto Econômico e ROI</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #2ca02c 0%, #51cf66 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #d4f7df 0%, #a5f1b5 100%);
+        min-height: 100vh;
+        padding: 20px;
+    }
 
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
-        }
+    .container {
+        max-width: 1600px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+        overflow: hidden;
+    }
 
-        .header {
-            background: linear-gradient(135deg, #2ca02c 0%, #ff7f0e 100%);
-            color: white;
-            padding: 40px;
-            text-align: center;
-        }
+    
+    .header {
+        background: linear-gradient(135deg, #1a8754 0%, #28a745 100%);
+        color: white;
+        padding: 50px;
+        text-align: center;
+    }
 
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-        }
+    .header h1 {
+        font-size: 2.6em;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        font-weight: 700;
+        letter-spacing: 1px;
+    }
 
-        .content {
-            padding: 40px;
-        }
+    .header p {
+        font-size: 1.1em;
+        opacity: 0.9;
+    }
 
-        .economic-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-            margin-bottom: 40px;
-        }
+    .content {
+        padding: 40px;
+    }
 
-        .econ-card {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            border-top: 5px solid #2ca02c;
-        }
+    /* CARDS ECONÔMICOS */
+    .economic-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 25px;
+        margin-bottom: 40px;
+    }
 
-        .econ-card h3 {
-            color: #2ca02c;
-            margin-bottom: 15px;
-            font-size: 1.1em;
-        }
+    .econ-card {
+        background: linear-gradient(135deg, #f8fff9 0%, #e6ffed 100%);
+        padding: 30px;
+        border-radius: 15px;
+        border-top: 5px solid #28a745;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
 
-        .econ-card.cost {
-            border-top-color: #d62728;
-        }
+    .econ-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    }
 
-        .econ-card.cost h3 {
-            color: #d62728;
-        }
+    .econ-card h3 {
+        color: #1a8754;
+        margin-bottom: 15px;
+        font-size: 1.1em;
+        font-weight: bold;
+    }
 
-        .econ-card.warning {
-            border-top-color: #ff7f0e;
-        }
+    .econ-card.cost {
+        border-top-color: #d62728;
+    }
 
-        .econ-card.warning h3 {
-            color: #ff7f0e;
-        }
+    .econ-card.cost h3 {
+        color: #d62728;
+    }
 
-        .econ-card .value {
-            font-size: 1.8em;
-            font-weight: bold;
-            color: #2ca02c;
-            margin: 10px 0;
-        }
+    .econ-card.warning {
+        border-top-color: #ff7f0e;
+    }
 
-        .econ-card.cost .value {
-            color: #d62728;
-        }
+    .econ-card.warning h3 {
+        color: #ff7f0e;
+    }
 
-        .econ-card.warning .value {
-            color: #ff7f0e;
-        }
+    .econ-card .value {
+        font-size: 1.8em;
+        font-weight: bold;
+        color: #1a8754;
+        margin: 10px 0;
+    }
 
-        .econ-card .description {
-            font-size: 0.9em;
-            color: #666;
-            margin-top: 10px;
-        }
+    .econ-card .description {
+        font-size: 0.9em;
+        color: #555;
+    }
 
+    /* TABELAS */
+    .budget-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 25px 0;
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .budget-table thead {
+        background: linear-gradient(135deg, #1a8754 0%, #28a745 100%);
+        color: white;
+    }
+
+    .budget-table th, .budget-table td {
+        padding: 15px;
+        text-align: left;
+    }
+
+    .budget-table tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    .budget-table .total-row {
+        background: #e9fff0;
+        font-weight: bold;
+    }
+
+    .budget-table .total-row td {
+        border-top: 2px solid #1a8754;
+        color: #1a8754;
+    }
+
+    /* SEÇÃO ROI */
+    .roi-section {
+        background: linear-gradient(135deg, #f0fff4 0%, #e6ffed 100%);
+        border-left: 5px solid #28a745;
+        padding: 30px;
+        border-radius: 10px;
+        margin-top: 30px;
+    }
+
+    .roi-section h2 {
+        color: #1a8754;
+        margin-bottom: 20px;
+    }
+
+    .roi-item {
+        background: white;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 10px;
+        border-left: 4px solid #28a745;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .roi-item h4 {
+        color: #1a8754;
+        margin-bottom: 10px;
+    }
+
+    .metric-box {
+        display: inline-block;
+        background: #f0fff4;
+        padding: 10px 15px;
+        margin: 5px;
+        border-radius: 8px;
+        border-left: 4px solid #28a745;
+        font-size: 0.9em;
+    }
+
+    .metric-box strong {
+        color: #1a8754;
+    }
+
+    .footer {
+        background: #f8f9fa;
+        padding: 20px 40px;
+        text-align: center;
+        color: #666;
+        font-size: 0.9em;
+        border-top: 1px solid #e9ecef;
+    }
+
+    @media (max-width: 1200px) {
         .charts-section {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-            gap: 30px;
-            margin-bottom: 40px;
+            grid-template-columns: 1fr;
         }
-
-        .chart-container {
-            background: #f8f9fa;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            border: 2px solid #e9ecef;
-        }
-
-        .chart-container h3 {
-            margin-bottom: 20px;
-            color: #2ca02c;
-            font-size: 1.3em;
-            padding-bottom: 15px;
-            border-bottom: 3px solid #2ca02c;
-        }
-
-        .chart-wrapper {
-            position: relative;
-            height: 400px;
-        }
-
-        .roi-section {
-            background: linear-gradient(135deg, #f0fff4 0%, #e6ffed 100%);
-            border-left: 5px solid #2ca02c;
-            padding: 30px;
-            margin-top: 30px;
-            border-radius: 10px;
-            font-size: 0.95em;
-            line-height: 1.8;
-        }
-
-        .roi-section h2 {
-            color: #2ca02c;
-            margin-bottom: 25px;
-            font-size: 1.6em;
-        }
-
-        .roi-item {
-            background: white;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 10px;
-            border-left: 4px solid #2ca02c;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-
-        .roi-item h4 {
-            color: #2ca02c;
-            margin-bottom: 10px;
-            font-size: 1.1em;
-        }
-
-        .budget-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .budget-table thead {
-            background: linear-gradient(135deg, #2ca02c 0%, #51cf66 100%);
-            color: white;
-        }
-
-        .budget-table th {
-            padding: 15px;
-            text-align: left;
-            font-weight: bold;
-        }
-
-        .budget-table td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #e9ecef;
-        }
-
-        .budget-table tbody tr:hover {
-            background: #f8f9fa;
-        }
-
-        .budget-table .total-row {
-            background: #f0fff4;
-            font-weight: bold;
-        }
-
-        .budget-table .total-row td {
-            border-top: 2px solid #2ca02c;
-            padding: 15px;
-            color: #2ca02c;
-        }
-
-        .value-green {
-            color: #2ca02c;
-            font-weight: bold;
-        }
-
-        .value-red {
-            color: #d62728;
-            font-weight: bold;
-        }
-
-        .value-orange {
-            color: #ff7f0e;
-            font-weight: bold;
-        }
-
-        .footer {
-            background: #f8f9fa;
-            padding: 20px 40px;
-            text-align: center;
-            color: #666;
-            font-size: 0.9em;
-            border-top: 1px solid #e9ecef;
-        }
-
-        @media (max-width: 1200px) {
-            .charts-section {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .metric-box {
-            display: inline-block;
-            background: #f0fff4;
-            padding: 15px 20px;
-            margin: 5px;
-            border-radius: 8px;
-            border-left: 4px solid #2ca02c;
-            font-size: 0.95em;
-        }
-
-        .metric-box strong {
-            color: #2ca02c;
-        }
-    </style>
+    }
+</style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>💰 ANÁLISE DE IMPACTO ECONÔMICO & ROI</h1>
+            <h1>ANÁLISE DE IMPACTO ECONÔMICO & ROI</h1>
             <p>Justificativa Financeira para Investimento em Segurança Viária</p>
         </div>
 
         <div class="content">
-            <!-- ECONOMIC OVERVIEW -->
-            <h2 style="color: #2ca02c; margin-bottom: 25px; font-size: 1.8em;">📊 Visão Geral Econômica (13 Anos: 2013-2025)</h2>
+            
+            <h2 style="color: #2ca02c; margin-bottom: 25px; font-size: 1.8em;">Visão Geral Econômica (2013-2025)</h2>
 
             <div class="economic-cards">
                 <div class="econ-card">
-                    <h3>💔 Custo Social de Mortes</h3>
+                    <h3> Custo Social de Mortes</h3>
                     <div class="value">$35.1B</div>
                     <div class="description">
                         3.509 mortes × $10M per capita (estimativa conservadora)<br/>
@@ -270,7 +225,7 @@
                 </div>
 
                 <div class="econ-card cost">
-                    <h3>🏥 Custo Médico de Ferimentos</h3>
+                    <h3> Custo Médico de Ferimentos</h3>
                     <div class="value">$18.2B</div>
                     <div class="description">
                         726.530 feridos × $25K média por tratamento<br/>
@@ -279,7 +234,7 @@
                 </div>
 
                 <div class="econ-card warning">
-                    <h3>💼 Custo Produtivo Perda</h3>
+                    <h3>Custo Produtivo Perda</h3>
                     <div class="value">$12.8B</div>
                     <div class="description">
                         Dias de trabalho perdidos, incapacidade<br/>
@@ -288,7 +243,7 @@
                 </div>
 
                 <div class="econ-card">
-                    <h3>📍 Custo Infraestrutura/Propriedade</h3>
+                    <h3>Custo Infraestrutura/Propriedade</h3>
                     <div class="value">$5.6B</div>
                     <div class="description">
                         Danos a veículos, propriedades, infraestrutura<br/>
@@ -297,7 +252,7 @@
                 </div>
 
                 <div class="econ-card">
-                    <h3>⚖️ Custos Legais/Judiciais</h3>
+                    <h3>Custos Legais/Judiciais</h3>
                     <div class="value">$3.2B</div>
                     <div class="description">
                         Processos, seguros, indenizações<br/>
@@ -306,7 +261,7 @@
                 </div>
 
                 <div class="econ-card cost">
-                    <h3>🔴 CUSTO TOTAL ANUAL (Média)</h3>
+                    <h3>CUSTO TOTAL ANUAL (Média)</h3>
                     <div class="value">$4.7B</div>
                     <div class="description">
                         Custo anual do problema para NYC/Estado<br/>
@@ -316,7 +271,7 @@
             </div>
 
             <!-- BUDGET INVESTMENT -->
-            <h2 style="color: #2ca02c; margin: 40px 0 25px 0; font-size: 1.8em;">💵 Orçamento Recomendado de Investimento (Anual)</h2>
+            <h2 style="color: #2ca02c; margin: 40px 0 25px 0; font-size: 1.8em;">Orçamento Recomendado de Investimento (Anual)</h2>
 
             <table class="budget-table">
                 <thead>
@@ -355,9 +310,9 @@
                 </tbody>
             </table>
 
-            <!-- ROI CALCULATION -->
+            
             <div class="roi-section">
-                <h2>📈 Retorno sobre Investimento (ROI) - Cenários de Sucesso</h2>
+                <h2>Retorno sobre Investimento (ROI) - Cenários de Sucesso</h2>
 
                 <div class="roi-item">
                     <h4>Cenário Conservador: 15% de Redução em Colisões</h4>
@@ -408,7 +363,7 @@
                 </div>
 
                 <div class="roi-item">
-                    <h4>⚠️ Custo da Inação (Sem Investimento)</h4>
+                    <h4>Custo da Inação (Sem Investimento)</h4>
                     <p><strong>Cenário:</strong> Manter status quo com aumento de severidade</p>
                     <p style="margin-top: 15px;"><strong>Impacto Anual:</strong></p>
                     <ul style="margin-left: 20px; margin-top: 8px;">
@@ -424,28 +379,28 @@
             <!-- CHARTS SECTION -->
             <div class="charts-section">
                 <div class="chart-container">
-                    <h3>📊 Composição de Custos (13 Anos)</h3>
+                    <h3>Composição de Custos (13 Anos)</h3>
                     <div class="chart-wrapper">
                         <canvas id="costCompositionChart"></canvas>
                     </div>
                 </div>
 
                 <div class="chart-container">
-                    <h3>💹 ROI Comparativo (2 Cenários + Inação)</h3>
+                    <h3>ROI Comparativo (2 Cenários + Inação)</h3>
                     <div class="chart-wrapper">
                         <canvas id="roiComparisonChart"></canvas>
                     </div>
                 </div>
 
                 <div class="chart-container">
-                    <h3>📈 Retorno vs Investimento (Longo Prazo 10 Anos)</h3>
+                    <h3>Retorno vs Investimento (Longo Prazo 10 Anos)</h3>
                     <div class="chart-wrapper">
                         <canvas id="longTermRoiChart"></canvas>
                     </div>
                 </div>
 
                 <div class="chart-container">
-                    <h3>🎯 Alocação do Orçamento de Investimento</h3>
+                    <h3>Alocação do Orçamento de Investimento</h3>
                     <div class="chart-wrapper">
                         <canvas id="budgetAllocationChart"></canvas>
                     </div>
@@ -453,7 +408,7 @@
             </div>
 
             <!-- SUMMARY TABLE -->
-            <h2 style="color: #2ca02c; margin: 40px 0 25px 0; font-size: 1.8em;">📋 Resumo Comparativo - Decisão Executiva</h2>
+            <h2 style="color: #2ca02c; margin: 40px 0 25px 0; font-size: 1.8em;">Resumo Comparativo - Decisão Executiva</h2>
 
             <table class="budget-table">
                 <thead>
@@ -501,26 +456,23 @@
                         <td class="value-green">< 2 semanas</td>
                         <td class="value-red">N/A</td>
                     </tr>
-                    <tr class="total-row">
-                        <td><strong>RECOMENDAÇÃO</strong></td>
-                        <td colspan="3" style="text-align: center; color: #2ca02c;"><strong>✅ INVESTIR IMEDIATAMENTE | Cenário Agressivo é Ótimo para Redução de Mortes</strong></td>
-                    </tr>
+                    
                 </tbody>
             </table>
 
             <!-- FINAL RECOMMENDATION -->
             <div style="background: linear-gradient(135deg, #f0fff4 0%, #e6ffed 100%); border-left: 5px solid #2ca02c; padding: 30px; margin-top: 30px; border-radius: 10px;">
-                <h3 style="color: #2ca02c; margin-bottom: 15px; font-size: 1.4em;">✅ RECOMENDAÇÃO EXECUTIVA FINAL</h3>
+                <h3 style="color: #2ca02c; margin-bottom: 15px; font-size: 1.4em;">RECOMENDAÇÃO EXECUTIVA FINAL</h3>
                 <p><strong>Análise Financeira Conclusiva:</strong></p>
                 <ul style="margin-left: 20px; margin-top: 15px;">
-                    <li><strong>Investimento de $350M/ano</strong> gera retorno de <strong>$4.26B-8.54B/ano</strong> dependendo do cenário</li>
+                    <li><strong>Investimento de $350M/ano</strong> gera retorno de <strong>$4.26B-8.54B/ano</strong> </li>
                     <li><strong>ROI extremamente positivo:</strong> 11x-24x o investimento em apenas 1 ano</li>
                     <li><strong>Payback quase instantâneo:</strong> Menos de 1 mês para recuperar o investimento</li>
                     <li><strong>Economicamente é uma decisão trivial:</strong> Investir em segurança viária é muito mais lucrativo que deixar de investir</li>
-                    <li><strong>Bonus humanitário:</strong> Salvar 68-258 vidas por ano (decisão moral irrefutável)</li>
+                    <li><strong>Bonus humanitário:</strong> Salvar 68-258 vidas por ano </li>
                 </ul>
                 <p style="margin-top: 20px; font-size: 1.1em; color: #2ca02c; font-weight: bold;">
-                    💡 NÃO INVESTIR em segurança viária custa 13x MAIS do que investir. A pergunta não é "Podemos investir?" mas "Como NÃO podemos deixar de investir?"
+                    NÃO INVESTIR em segurança viária custa 13x MAIS do que investir.
                 </p>
             </div>
         </div>
@@ -560,7 +512,7 @@
             }
         });
 
-        // ROI Comparison Chart
+        
         const roiCtx = document.getElementById('roiComparisonChart').getContext('2d');
         new Chart(roiCtx, {
             type: 'bar',
